@@ -4,12 +4,13 @@ const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const connection = require("./config/dbconnection");
-const groupsRoutes = require("./routes/groups");
-const lecturesPoutes = require("./routes/lectures");
-const studentsRoutes = require("./routes/students");
-const teachersRoutes = require("./routes/teachers");
+const groupsRoutes = require("./routes/group.routes");
+const lecturesPoutes = require("./routes/lectures.routes");
+const studentsRoutes = require("./routes/student.routes");
+const teachersRoutes = require("./routes/teacher.routes");
+const db = require("./models");
+db.sequelize.sync();
 
-// db connection
 connection.connect((error) => {
   if (error) throw error;
   console.log("Successfully connected to the database.");

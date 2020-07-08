@@ -4,13 +4,13 @@ module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
     "students",
     {
-      student_id: {
+      id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
         autoIncrement: true,
       },
-      student_name: {
+      name: {
         type: DataTypes.STRING(100),
         allowNull: false,
       },
