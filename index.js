@@ -3,18 +3,12 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const connection = require("./config/dbconnection");
 const groupsRoutes = require("./routes/group.routes");
 const lecturesPoutes = require("./routes/lectures.routes");
 const studentsRoutes = require("./routes/student.routes");
 const teachersRoutes = require("./routes/teacher.routes");
 const db = require("./models");
 db.sequelize.sync();
-
-connection.connect((error) => {
-  if (error) throw error;
-  console.log("Successfully connected to the database.");
-});
 
 // make server object that contain port property and the value for our server.
 var server = {
