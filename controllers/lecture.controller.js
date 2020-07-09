@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { getPagination, getPagingData } = require("../pagination/pagination");
 const db = require("../models");
 const Lectures = db.lectures;
 const Teachers = db.teachers;
@@ -7,18 +8,21 @@ const Op = db.Sequelize.Op;
 
 // find all lectures
 exports.findAll = asyncHandler(async (req, res, next) => {
-  const lectures = await Lectures.findAll();
-  res.status(200).json(lectures);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const data = await Lectures.findAndCountAll({ limit, offset });
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });
 
 // find lecture by id
 exports.findOne = asyncHandler(async (req, res, next) => {
   const lectureId = req.params.id;
-  const currentLecture = await Lectures.findByPk(lectureId);
-  if (!currentLecture) {
+  const response = await Lectures.findByPk(lectureId);
+  if (!response) {
     res.status(400).send(`Bad request: "No such lecture"`);
   } else {
-    res.status(200).json(currentLecture);
+    res.status(200).json(response);
   }
 });
 
@@ -38,14 +42,14 @@ exports.create = asyncHandler(async (req, res, next) => {
       .status(400)
       .send(`Bad Request: Can't create lecture with dublicated number`);
   } else {
-    const newLecture = await Lectures.create({
+    const response = await Lectures.create({
       teacher_id,
       group_id,
       audience,
       title,
       number,
     });
-    res.status(201).json(newLecture);
+    res.status(201).json(response);
   }
 });
 
@@ -72,8 +76,8 @@ exports.update = asyncHandler(async (req, res, next) => {
         id: lectureId,
       },
     });
-    const updatedLectureDetails = await Lectures.findByPk(lectureId);
-    res.status(201).json(updatedLectureDetails);
+    const response = await Lectures.findByPk(lectureId);
+    res.status(201).json(response);
   }
 });
 
@@ -88,20 +92,27 @@ exports.delete = asyncHandler(async (req, res, next) => {
   res.status(204).send();
 });
 
-// find teacher the lecture belongs to
 exports.findLectureTeacher = asyncHandler(async (req, res, next) => {
   const lectureId = req.params.id;
-  const lecture = await Lectures.findAll({ where: { id: lectureId } });
-  const teacherId = lecture[0].teacher_id;
-  const teacher = await Teachers.findAll({ where: { id: teacherId } });
-  res.status(200).json(teacher);
+  const lecture = await Lectures.findByPk(lectureId);
+  if (lecture === null) {
+    res.status(400).send(`Bad request: "Lecture not found"`);
+  } else {
+    const teacherId = lecture.teacher_id;
+    const response = await Teachers.findByPk(teacherId);
+    res.status(200).json(response);
+  }
 });
 
 // find the group which listen this lecture
 exports.findLectureGroup = asyncHandler(async (req, res, next) => {
   const lectureId = req.params.id;
-  const lecture = await Lectures.findAll({ where: { id: lectureId } });
-  const groupId = lecture[0].group_id;
-  const group = await Groups.findAll({ where: { id: groupId } });
-  res.status(200).json(group);
+  const lecture = await Lectures.findByPk(lectureId);
+  if (lecture === null) {
+    res.status(400).send(`Bad request: "Lecture not found"`);
+  } else {
+    const groupId = lecture.group_id;
+    const response = await Groups.findByPk(groupId);
+    res.status(200).json(response);
+  }
 });

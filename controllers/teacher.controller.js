@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { getPagination, getPagingData } = require("../pagination/pagination");
 const db = require("../models");
 const Teachers = db.teachers;
 const Lectures = db.lectures;
@@ -6,18 +7,24 @@ const Op = db.Sequelize.Op;
 
 // Retrieve all teachers from the database.
 exports.findAll = asyncHandler(async (req, res, next) => {
-  const teachers = await Teachers.findAll();
-  res.status(200).json(teachers);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const data = await Teachers.findAndCountAll({
+    limit,
+    offset,
+  });
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });
 
 // find teacher by id
 exports.findOne = asyncHandler(async (req, res, next) => {
   const teacherId = req.params.id;
-  const currentTeacher = await Teachers.findByPk(teacherId);
-  if (!currentTeacher) {
+  const response = await Teachers.findByPk(teacherId);
+  if (!response) {
     res.status(400).send(`Bad request: "No such teacher"`);
   } else {
-    res.status(200).json(currentTeacher);
+    res.status(200).json(response);
   }
 });
 
@@ -40,11 +47,11 @@ exports.create = asyncHandler(async (req, res, next) => {
       .send(`Bad Request: Can't create teacher with dublicated email`);
     return;
   } else {
-    const newTeacher = await Teachers.create({
+    const response = await Teachers.create({
       name: name,
       email: email,
     });
-    res.status(201).json(newTeacher);
+    res.status(201).json(response);
   }
 });
 
@@ -60,7 +67,7 @@ exports.update = asyncHandler(async (req, res, next) => {
   const allTeachers = await Teachers.findAll({
     where: { id: { [Op.not]: teacherId }, email: teacherEmail },
   });
-  if (allTeachers.length > 1) {
+  if (allTeachers.length > 0) {
     res
       .status(400)
       .send(`Bad Request: Can't create teacher with dublicated email`);
@@ -70,8 +77,8 @@ exports.update = asyncHandler(async (req, res, next) => {
         id: teacherId,
       },
     });
-    const updatedTeacher = await Teachers.findByPk(teacherId);
-    res.status(201).json(updatedTeacher);
+    const response = await Teachers.findByPk(teacherId);
+    res.status(201).json(response);
   }
 });
 
@@ -89,8 +96,13 @@ exports.delete = asyncHandler(async (req, res, next) => {
 // Find all lectures of teacher
 exports.findAllLecturesOfTeacher = asyncHandler(async (req, res, next) => {
   const teacherId = req.params.id;
-  const lectures = await Lectures.findAll({
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const data = await Lectures.findAndCountAll({
+    limit,
+    offset,
     where: { teacher_id: teacherId },
   });
-  res.status(200).json(lectures);
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });

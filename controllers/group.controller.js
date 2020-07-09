@@ -1,25 +1,28 @@
 const asyncHandler = require("express-async-handler");
+const { getPagination, getPagingData } = require("../pagination/pagination");
 const db = require("../models");
 const Groups = db.groups;
 const Lectures = db.lectures;
 const Students = db.students;
-
 const Op = db.Sequelize.Op;
 
 // Retrieve all groups from the database
 exports.findAll = asyncHandler(async (req, res, next) => {
-  const groups = await Groups.findAll();
-  res.status(200).json(groups);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const data = await Groups.findAndCountAll({ limit, offset });
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });
 
 // get group by id
 exports.findOne = asyncHandler(async (req, res, next) => {
   const groupId = req.params.id;
-  const currentGroup = await Groups.findByPk(groupId);
-  if (!currentGroup) {
+  const response = await Groups.findByPk(groupId);
+  if (!response) {
     res.status(400).send(`Bad request: "No such group"`);
   } else {
-    res.status(200).json(currentGroup);
+    res.status(200).json(response);
   }
 });
 
@@ -39,10 +42,10 @@ exports.create = asyncHandler(async (req, res, next) => {
       .status(400)
       .send(`Bad Request: Such name already exist in the database`);
   } else {
-    const newGroup = await Groups.create({
+    const response = await Groups.create({
       name: name,
     });
-    res.status(201).json(newGroup);
+    res.status(201).json(response);
   }
 });
 
@@ -58,7 +61,7 @@ exports.update = asyncHandler(async (req, res, next) => {
   const allGroups = await Groups.findAll({
     where: { id: { [Op.not]: groupId }, name: groupName },
   });
-  if (allGroups.length > 1) {
+  if (allGroups.length > 0) {
     res
       .status(400)
       .send(
@@ -70,8 +73,8 @@ exports.update = asyncHandler(async (req, res, next) => {
         id: groupId,
       },
     });
-    const updatedGroup = await Groups.findByPk(groupId);
-    res.status(201).json(updatedGroup);
+    const response = await Groups.findByPk(groupId);
+    res.status(201).json(response);
   }
 });
 
@@ -88,24 +91,28 @@ exports.delete = asyncHandler(async (req, res, next) => {
 
 // find all students belong to the current group
 exports.findGroupStudents = asyncHandler(async (req, res, next) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
   const groupId = req.params.id;
-  const group = await Groups.findAll({ where: { id: groupId } });
-  if (group.length < 1) {
-    res.status(400).send(`Bad request: "No such group"`);
-  } else {
-    const students = await Students.findAll({ where: { group_id: groupId } });
-    res.status(200).json(students);
-  }
+  const data = await Students.findAndCountAll({
+    limit,
+    offset,
+    where: { group_id: groupId },
+  });
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });
 
 // find all lectures the group contains
 exports.findGroupLectures = asyncHandler(async (req, res, next) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
   const groupId = req.params.id;
-  const group = await Groups.findAll({ where: { id: groupId } });
-  if (group.length < 1) {
-    res.status(400).send(`Bad request: "No such group"`);
-  } else {
-    const lectures = await Lectures.findAll({ where: { group_id: groupId } });
-    res.status(200).json(lectures);
-  }
+  const data = await Lectures.findAndCountAll({
+    limit,
+    offset,
+    where: { group_id: groupId },
+  });
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });

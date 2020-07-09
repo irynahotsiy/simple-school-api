@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { getPagination, getPagingData } = require("../pagination/pagination");
 const db = require("../models");
 const Students = db.students;
 const Lectures = db.lectures;
@@ -6,18 +7,21 @@ const Op = db.Sequelize.Op;
 
 // find all students
 exports.findAll = asyncHandler(async (req, res, next) => {
-  const students = await Students.findAll();
-  res.status(200).json(students);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const data = await Students.findAndCountAll({ limit, offset });
+  const response = getPagingData(data, page, limit);
+  res.status(200).json(response);
 });
 
 // find student by id
 exports.findOne = asyncHandler(async (req, res, next) => {
   const studentId = req.params.id;
-  const currentStudent = await Students.findByPk(studentId);
-  if (!currentStudent) {
+  const response = await Students.findByPk(studentId);
+  if (!response) {
     res.status(400).send(`Bad request: "No such student"`);
   } else {
-    res.status(200).json(currentStudent);
+    res.status(200).json(response);
   }
 });
 
@@ -38,8 +42,8 @@ exports.create = asyncHandler(async (req, res, next) => {
       .status(400)
       .send(`Bad Request: "Can't create student with dublicated email"`);
   } else {
-    const newStudent = await Students.create({ name, email, group_id });
-    res.status(201).json(newStudent);
+    const response = await Students.create({ name, email, group_id });
+    res.status(201).json(response);
   }
 });
 
@@ -66,8 +70,8 @@ exports.update = asyncHandler(async (req, res, next) => {
         id: studentId,
       },
     });
-    const updatedStudentDetails = await Students.findByPk(studentId);
-    res.status(201).json(updatedStudentDetails);
+    const response = await Students.findByPk(studentId);
+    res.status(201).json(response);
   }
 });
 
@@ -84,20 +88,38 @@ exports.delete = asyncHandler(async (req, res, next) => {
 
 // find all groupmates by id
 exports.findAllGroupMates = asyncHandler(async (req, res, next) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
   const studentId = req.params.id;
-  const currentStudent = await Students.findAll({ where: { id: studentId } });
-  const groupMates = await Students.findAll({
-    where: { group_id: currentStudent[0].group_id },
-  });
-  res.status(200).json(groupMates);
+  const currentStudent = await Students.findByPk(studentId);
+  if (currentStudent === null) {
+    res.status(400).send(`Bad request: "Student not found"`);
+  } else {
+    const data = await Students.findAndCountAll({
+      limit,
+      offset,
+      where: { group_id: currentStudent.group_id },
+    });
+    const response = getPagingData(data, page, limit);
+    res.status(200).json(response);
+  }
 });
 
 // find all lectures belong to the student
 exports.findAllStudentLectures = asyncHandler(async (req, res, next) => {
   const studentId = req.params.id;
-  const currentStudent = await Students.findAll({ where: { id: studentId } });
-  const lectures = await Lectures.findAll({
-    where: { group_id: currentStudent[0].group_id },
-  });
-  res.status(200).json(lectures);
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  const currentStudent = await Students.findByPk(studentId);
+  if (currentStudent === null) {
+    res.status(400).send(`Bad request: "Student not found"`);
+  } else {
+    const data = await Lectures.findAndCountAll({
+      limit,
+      offset,
+      where: { group_id: currentStudent.group_id },
+    });
+    const response = getPagingData(data, page, limit);
+    res.status(200).json(response);
+  }
 });
