@@ -37,7 +37,7 @@ exports.findOne = asyncHandler(async (req, res) => {
 
 exports.create = asyncHandler(async (req, res) => {
   if (!req.body) {
-    sendError(res, 400, 'Bad Request: Content can not be empty!');
+    sendError(res, 400, 'Bad Request: Invalid payload!');
     return;
   }
   const { number, audience, title } = req.body;
@@ -61,7 +61,7 @@ exports.create = asyncHandler(async (req, res) => {
 // update the current lecture details
 exports.update = asyncHandler(async (req, res) => {
   if (!req.body) {
-    sendError(res, 400, 'Bad Request: Content can not be empty!');
+    sendError(res, 400, 'Bad Request: Invalid payload!');
     return;
   }
   const { number, audience, title } = req.body;
