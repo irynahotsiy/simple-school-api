@@ -1,8 +1,8 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function lectures(sequelize, DataTypes) {
   return sequelize.define(
-    "lectures",
+    'lectures',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -14,16 +14,16 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "teachers",
-          key: "teacher_id",
+          model: 'teachers',
+          key: 'id',
         },
       },
       group_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "groups",
-          key: "group_id",
+          model: 'groups',
+          key: 'id',
         },
       },
       audience: {
@@ -41,8 +41,7 @@ module.exports = function (sequelize, DataTypes) {
       },
     },
     {
-      tableName: "lectures",
-      timestamps: false,
-    }
+      tableName: 'lectures',
+    },
   );
 };

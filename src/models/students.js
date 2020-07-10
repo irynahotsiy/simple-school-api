@@ -1,8 +1,8 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function students(sequelize, DataTypes) {
   return sequelize.define(
-    "students",
+    'students',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -23,14 +23,14 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "groups",
-          key: "group_id",
+          model: 'groups',
+          key: 'id',
         },
       },
     },
     {
-      tableName: "students",
+      tableName: 'students',
       timestamps: false,
-    }
+    },
   );
 };

@@ -9,9 +9,11 @@ const getPagingData = (data, page, limit) => {
   const { count, rows } = data;
   const totalItems = count;
   const items = rows;
-  const currentPage = page ? parseInt(page) : 0;
+  const currentPage = page ? parseInt(page, 10) : 0;
   const totalPages = Math.ceil(totalItems / limit);
 
-  return { totalItems, items, totalPages, currentPage };
+  return {
+    totalItems, items, totalPages, currentPage,
+  };
 };
 module.exports = { getPagingData, getPagination };
