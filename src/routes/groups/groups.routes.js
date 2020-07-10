@@ -10,7 +10,7 @@ router.put('/groups/:id', groups.update);
 
 router.post('/groups', groups.create);
 
-router.delete('/groups/id', groups.delete);
+router.delete('/groups/:id', groups.delete);
 
 router.get('/groups/:id/students', groups.findGroupStudents);
 
